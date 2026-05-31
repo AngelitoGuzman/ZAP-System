@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZAP System — ERP Contable</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0f1e3c;--navy2:#1a2f5a;--navy3:#243f78;--navy4:#2e4f96;
+  --accent:#1d9e75;--accent2:#0f6e56;--accentL:#e8f5f1;
+  --bg:#f0f2f5;--surface:#fff;--border:#e2e5eb;--border2:#c8cdd8;
+  --text:#1a1d24;--muted:#6b7280;--light:#9ca3af;
+  --red:#dc2626;--redL:#fef2f2;--amber:#d97706;--amberL:#fffbeb;
+  --green:#059669;--greenL:#ecfdf5;--blue:#2563eb;--blueL:#eff6ff;
+  --sidebar:230px;--topbar:50px;
+  --ff:'IBM Plex Sans',sans-serif;--ffm:'IBM Plex Mono',monospace;
+}
+body{font-family:var(--ff);background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;font-size:13px;line-height:1.5}
+
+/* ── SIDEBAR ── */
+#sb{width:var(--sidebar);background:var(--navy);display:flex;flex-direction:column;flex-shrink:0}
+#sb-logo{padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+#sb-logo .co{font-size:13px;font-weight:600;color:#fff;letter-spacing:.2px}
+#sb-logo .nit{font-size:10px;color:rgba(255,255,255,.35);font-family:var(--ffm);margin-top:2px}
+#sb nav{padding:6px 0;flex:1;overflow-y:auto}
+.ns{font-size:9px;font-weight:600;color:rgba(255,255,255,.3);letter-spacing:1.6px;padding:10px 14px 3px;text-transform:uppercase}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 14px;color:rgba(255,255,255,.6);cursor:pointer;transition:all .12s;font-size:12.5px;border-left:3px solid transparent}
+.ni svg{width:15px;height:15px;flex-shrink:0}
+.ni:hover{background:rgba(255,255,255,.07);color:#fff}
+.ni.on{background:rgba(29,158,117,.2);color:#fff;border-left-color:var(--accent)}
+#sb-footer{padding:10px 14px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:rgba(255,255,255,.3)}
+
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#top{height:var(--topbar);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:10px;flex-shrink:0}
+#top h1{font-size:13.5px;font-weight:600;flex:1;color:var(--navy)}
+.pbadge{background:var(--accentL);color:var(--accent2);font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:4px;font-family:var(--ffm)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text);transition:all .12s;font-family:var(--ff)}
+.btn:hover{background:var(--bg)}
+.btn.prim{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.prim:hover{background:var(--navy2)}
+.btn.acc{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.acc:hover{background:var(--accent2)}
+.btn.dan{background:var(--red);color:#fff;border-color:var(--red)}
+.btn svg{width:13px;height:13px}
+#content{flex:1;overflow-y:auto;padding:18px}
+
+/* ── PANELS ── */
+.panel{display:none}.panel.on{display:block}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:visible;margin-bottom:14px}
+.ch{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.ch h2{font-size:13px;font-weight:600;flex:1;color:var(--navy)}
+.ch .tag{font-size:10px;background:var(--blueL);color:var(--blue);padding:2px 8px;border-radius:3px;font-weight:600;font-family:var(--ffm)}
+.ch .tag.g{background:var(--greenL);color:var(--green)}
+.ch .tag.a{background:var(--amberL);color:var(--amber)}
+
+/* ── METRICS ── */
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.mc{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:13px 15px}
+.mc .lb{font-size:10px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.mc .vl{font-size:19px;font-weight:600;font-family:var(--ffm)}
+.mc .vl.g{color:var(--green)}.mc .vl.r{color:var(--red)}.mc .vl.a{color:var(--amber)}
+.mc .sb{font-size:10px;color:var(--light);margin-top:2px}
+
+/* ── TABLES ── */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--navy);color:#fff;font-weight:600;padding:8px 9px;text-align:left;font-size:11px;white-space:nowrap}
+thead th.r{text-align:right}
+thead th.c{text-align:center}
+tbody tr{border-bottom:1px solid #f0f1f5}
+tbody tr:hover{background:#f7f8fb}
+tbody td{padding:6px 9px;vertical-align:middle}
+tbody td.r{text-align:right;font-family:var(--ffm);font-size:11.5px}
+tbody td.c{text-align:center}
+tbody td.mono{font-family:var(--ffm);font-size:11px}
+.rg{background:#f9fafb;font-weight:700;font-size:10.5px;color:var(--muted);letter-spacing:.6px}
+.rsg{background:#f3f4f7;font-weight:600;color:var(--navy2)}
+.rst{background:#eaecf3;font-weight:700}
+.rst td{font-family:var(--ffm)}
+.rtot{background:var(--navy);color:#fff;font-weight:700}
+.rtot td{font-family:var(--ffm);font-size:12px}
+.rres{background:var(--greenL);font-weight:700}
+.rres td{color:var(--accent2);font-family:var(--ffm)}
+.rw{background:#fffbeb}
+.rw td{color:#92400e;font-family:var(--ffm)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.i1{padding-left:22px!important}.i2{padding-left:38px!important}.i3{padding-left:54px!important}
+
+/* ── FORM / DIARIO ── */
+.frow{display:grid;gap:10px;margin-bottom:12px}
+.fg2{grid-template-columns:1fr 1fr}
+.fg3{grid-template-columns:1fr 1fr 1fr}
+.fg4{grid-template-columns:auto 1fr 1fr 1fr auto}
+label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px}
+input[type=text],input[type=number],input[type=date],select,textarea{
+  width:100%;padding:7px 9px;border:1px solid var(--border2);border-radius:5px;
+  font-size:12.5px;font-family:var(--ff);color:var(--text);background:var(--surface);
+  transition:border .12s;outline:none
+}
+input:focus,select:focus,textarea:focus{border-color:var(--navy4)}
+input[type=number]{font-family:var(--ffm);text-align:right}
+.fpad{padding:15px}
+
+/* GRID ASIENTO */
+#grid-wrap{overflow-x:auto;margin-bottom:10px}
+#grid{width:100%;border-collapse:collapse;font-size:12px}
+#grid thead th{background:var(--navy2);color:#fff;padding:7px 8px;font-size:11px;font-weight:600;text-align:left}
+#grid thead th.r{text-align:right}
+#grid tbody tr{border-bottom:1px solid #eef0f4}
+#grid tbody tr:hover{background:#f9fafc}
+#grid tbody td{padding:4px 5px;vertical-align:middle}
+#grid tbody td.r{text-align:right}
+.ci{width:100%;padding:5px 7px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:var(--ff)}
+.ci:focus{outline:none;border-color:var(--navy4)}
+.ci.num{font-family:var(--ffm);text-align:right}
+.ci.cta{width:280px}
+select.ci{width:100%}
+.del-row{background:none;border:none;cursor:pointer;color:var(--red);padding:3px 6px;border-radius:3px;font-size:14px;line-height:1}
+.del-row:hover{background:var(--redL)}
+
+/* TOTALIZADOR */
+#tot-bar{display:flex;align-items:center;gap:10px;padding:10px 15px;background:var(--bg);border-top:1px solid var(--border);border-radius:0 0 8px 8px;flex-wrap:wrap}
+.tot-item{display:flex;align-items:center;gap:5px;font-size:12px}
+.tot-item .tl{color:var(--muted);font-weight:500}
+.tot-item .tv{font-family:var(--ffm);font-weight:700;font-size:13px}
+.tot-item .tv.ok{color:var(--green)}.tot-item .tv.bad{color:var(--red)}
+#diff-badge{padding:4px 10px;border-radius:4px;font-size:11.5px;font-weight:700;font-family:var(--ffm)}
+#diff-badge.ok{background:var(--greenL);color:var(--green)}
+#diff-badge.bad{background:var(--redL);color:var(--red)}
+
+/* MAYOR CARDS */
+.mayor-card{background:var(--surface);border:1px solid var(--border);border-radius:7px;margin-bottom:12px;overflow:hidden}
+.mayor-hdr{background:var(--navy2);color:#fff;padding:9px 14px;display:flex;align-items:center;gap:10px}
+.mayor-cod{font-family:var(--ffm);font-size:11px;background:rgba(255,255,255,.15);padding:2px 8px;border-radius:3px;white-space:nowrap}
+.mayor-nom{font-size:12.5px;font-weight:600;flex:1}
+.mayor-si{font-family:var(--ffm);font-size:12px;white-space:nowrap}
+
+/* ALERT */
+.alert{padding:9px 13px;border-radius:6px;font-size:12px;margin-bottom:12px;display:flex;align-items:center;gap:7px;border:1px solid}
+.alert.info{background:var(--accentL);border-color:#9fe1cb;color:var(--accent2)}
+.alert.warn{background:var(--amberL);border-color:#fcd34d;color:#92400e}
+.alert.err{background:var(--redL);border-color:#fca5a5;color:var(--red)}
+.alert svg{width:13px;height:13px;flex-shrink:0}
+
+/* EMPRESA HEADER */
+.ehead{text-align:center;padding:8px;margin-bottom:12px;border-bottom:1px solid var(--border)}
+.ehead h3{font-size:14px;font-weight:700;color:var(--navy)}
+.ehead p{font-size:11px;color:var(--muted)}
+
+/* FILTROS */
+.fbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.fbar input,.fbar select{padding:6px 9px;border:1px solid var(--border2);border-radius:5px;font-size:12px;font-family:var(--ff);color:var(--text);background:var(--surface)}
+.fbar input:focus,.fbar select:focus{outline:none;border-color:var(--navy4)}
+
+/* PARTIDAS LIST */
+.partida-row{background:var(--surface);border:1px solid var(--border);border-radius:6px;margin-bottom:8px;overflow:hidden}
+.partida-hdr{padding:9px 13px;background:#f8f9fb;display:flex;align-items:center;gap:8px;cursor:pointer;border-bottom:1px solid var(--border)}
+.partida-hdr:hover{background:#f0f2f5}
+.partida-num{font-family:var(--ffm);font-size:11px;font-weight:700;color:var(--navy);background:#e8edf5;padding:2px 8px;border-radius:3px}
+.partida-fecha{font-family:var(--ffm);font-size:11px;color:var(--muted)}
+.partida-desc{font-size:12.5px;font-weight:500;flex:1}
+.partida-monto{font-family:var(--ffm);font-size:12px;font-weight:700;color:var(--navy)}
+.partida-body{display:none;padding:0}
+.partida-body.open{display:block}
+
+/* BG layout */
+.bg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* MODAL */
+#modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center}
+#modal-bg.open{display:flex}
+#modal{background:var(--surface);border-radius:10px;width:680px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.mhdr{padding:15px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center}
+.mhdr h3{font-size:14px;font-weight:700;flex:1;color:var(--navy)}
+.mbody{padding:18px}
+.mfooter{padding:12px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+/* NUEVA CUENTA FORM */
+#p-cuentas .card:first-child{transition:box-shadow .15s}
+#p-cuentas .card:first-child:hover{box-shadow:0 2px 12px rgba(29,158,117,.12)}
+#nc-codigo::placeholder,#nc-nombre::placeholder{color:var(--light);font-style:italic}
+@media(max-width:860px){
+  #p-cuentas .fpad>div[style*="grid-template-columns"]{grid-template-columns:1fr 1fr!important}
+  #p-cuentas .fpad>div[style*="grid-template-columns"]>div:last-child{grid-column:1/-1;display:flex;justify-content:flex-end}
+}
+
+/* PRINT */
+@media print{#sb,#top,.fbar,.btn,#modal-bg{display:none!important}#content{padding:0}body{height:auto;overflow:visible}#main{overflow:visible}.card{break-inside:avoid}}
+
+/* ── PERIOD CONTROL IN TOPBAR ── */
+.period-ctrl{display:flex;align-items:center;gap:6px;background:#f4f6fa;border:1px solid var(--border2);border-radius:6px;padding:3px 8px 3px 10px}
+.period-ctrl .pc-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.period-ctrl select,.period-ctrl input[type=date]{
+  border:none;background:transparent;font-size:11.5px;font-family:var(--ffm);
+  color:var(--navy);font-weight:600;padding:2px 4px;outline:none;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+}
+.period-ctrl input[type=date]{width:112px}
+.period-ctrl .pc-sep{color:var(--border2);font-size:12px;margin:0 1px}
+
+/* ── AUTOCOMPLETE SUGGESTION INPUT ── */
+.cta-wrap{position:relative;width:100%;overflow:visible}
+.cta-inp{
+  width:100%;padding:5px 7px;border:1px solid var(--border);border-radius:4px;
+  font-size:12px;font-family:var(--ff);color:var(--text);background:var(--surface);
+  outline:none;transition:border .12s;
+}
+.cta-inp:focus{border-color:var(--navy4);background:#fff}
+.cta-inp.has-value{background:var(--accentL);border-color:#9fe1cb;font-weight:500}
+.cta-dropdown{
+  display:none;position:fixed;
+  background:var(--surface);border:1px solid var(--navy4);border-radius:6px;
+  box-shadow:0 8px 32px rgba(0,0,0,.22);z-index:9999!important;
+  max-height:220px;overflow-y:auto;min-width:320px;
+}
+.cta-dropdown.open{display:block}
+.cta-opt{
+  padding:7px 11px;cursor:pointer;display:flex;align-items:center;gap:9px;
+  border-bottom:1px solid #f0f2f5;transition:background .08s;
+}
+.cta-opt:last-child{border-bottom:none}
+.cta-opt:hover,.cta-opt.active{background:var(--blueL)}
+.cta-opt .opt-cod{
+  font-family:var(--ffm);font-size:10.5px;font-weight:700;
+  background:var(--navy);color:#fff;padding:1px 6px;border-radius:3px;
+  white-space:nowrap;flex-shrink:0;
+}
+.cta-opt .opt-nom{font-size:12px;flex:1;color:var(--text)}
+.cta-opt .opt-tipo{font-size:10px;color:var(--muted);white-space:nowrap}
+.cta-opt .opt-mark{color:var(--navy4);font-weight:700}
+.cta-no-res{padding:10px 12px;font-size:12px;color:var(--light);text-align:center}
+
+/* ── FORMULA INPUT (Debe / Haber) ── */
+.ci.formula{
+  font-family:var(--ffm);text-align:right;background:var(--surface);
+  transition:background .15s,border .12s;
+}
+.ci.formula:focus{background:#fffbeb;border-color:var(--amber);color:#92400e}
+.ci.formula.evaluated{background:var(--greenL);border-color:#9fe1cb;color:var(--accent2)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sb">
+  <div id="sb-logo">
+    <div class="co">ZAP System</div>
+    <div class="nit" style="font-size:9px;opacity:.5;letter-spacing:.5px">ERP CONTABLE</div>
+    <div class="nit">NIT: 5390 UMG</div>
+  </div>
+  <nav>
+    <div class="ns">Operación</div>
+    <div class="ni on" onclick="nav('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+    </div>
+    <div class="ni" onclick="nav('diario')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Registro de Partidas
+    </div>
+    <div class="ns">Reportes</div>
+    <div class="ni" onclick="nav('saldos')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Balance de Saldos
+    </div>
+    <div class="ni" onclick="nav('mayor')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Libro de Mayor
+    </div>
+    <div class="ni" onclick="nav('balance')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Balance General
+    </div>
+    <div class="ns">Configuración</div>
+    <div class="ni" onclick="nav('cuentas')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Plan de Cuentas
+    </div>
+  </nav>
+  <div id="sb-footer">Período: 01/01/2026 – 31/01/2026<br>ZAP System ERP</div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="top">
+    <h1 id="page-title">Dashboard — Resumen Ejecutivo</h1>
+    <div class="period-ctrl">
+      <span class="pc-label">Período</span>
+      <input type="date" id="pc-inicio" value="2026-01-01" onchange="onPeriodoChange()">
+      <span class="pc-sep">—</span>
+      <input type="date" id="pc-fin" value="2026-01-31" onchange="onPeriodoChange()">
+    </div>
+    <button class="btn" onclick="window.print()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir
+    </button>
+  </div>
+  <div id="content">
+
+<!-- ══════════════ DASHBOARD ══════════════ -->
+<div id="p-dashboard" class="panel on">
+  <div class="mg" id="dash-metrics"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card">
+      <div class="ch"><h2>Estado de Resultados del Mes</h2><span class="tag g" id="er-tag"></span></div>
+      <div class="tw"><table id="er-table"><tbody></tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>Últimas Partidas Registradas</h2></div>
+      <div class="tw"><table><thead><tr><th>#</th><th>Fecha</th><th>Descripción</th><th class="r">Monto Q</th></tr></thead><tbody id="dash-partidas"></tbody></table></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><h2>Resumen de Caja y Bancos</h2></div>
+    <div class="tw"><table><thead><tr><th>Código</th><th>Cuenta</th><th class="r">Saldo (Q)</th><th>Estado</th></tr></thead><tbody id="dash-bancos"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══════════════ REGISTRO DE PARTIDAS ══════════════ -->
+<div id="p-diario" class="panel">
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch"><h2>Nueva Partida Contable</h2><span class="tag">Partida Doble</span></div>
+    <div class="fpad">
+      <div class="frow fg3">
+        <div><label>Fecha</label><input type="date" id="f-fecha"></div>
+        <div><label>N° Partida</label><input type="text" id="f-num" readonly style="background:#f9fafb;color:var(--muted);font-family:var(--ffm)"></div>
+        <div><label>Tipo de Asiento</label>
+          <select id="f-tipo">
+            <option>Factura de Clientes</option>
+            <option>Factura de Proveedores</option>
+            <option>Pago Efectuado</option>
+            <option>Pago Recibido</option>
+            <option>Asiento Contable</option>
+            <option>Ajuste Reconciliación</option>
+            <option>Apertura Del Período</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow" style="grid-template-columns:1fr">
+        <div><label>Descripción / Concepto General</label><input type="text" id="f-desc" placeholder="Descripción del asiento contable..."></div>
+      </div>
+      <div id="grid-wrap">
+        <table id="grid">
+          <thead><tr>
+            <th style="width:30px">#</th>
+            <th>Cuenta Mayor / Nombre</th>
+            <th class="r" style="width:130px">Debe (Q)</th>
+            <th class="r" style="width:130px">Haber (Q)</th>
+            <th style="width:30px"></th>
+          </tr></thead>
+          <tbody id="grid-body"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="btn acc" onclick="addRow()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar Línea
+        </button>
+        <button class="btn" onclick="clearForm()">Limpiar</button>
+      </div>
+      <div id="tot-bar">
+        <div class="tot-item"><span class="tl">Total Debe:</span><span class="tv ok" id="tot-debe">Q 0.00</span></div>
+        <div style="flex:1"></div>
+        <div class="tot-item"><span class="tl">Total Haber:</span><span class="tv ok" id="tot-haber">Q 0.00</span></div>
+        <div style="flex:1"></div>
+        <div class="tot-item"><span class="tl">Diferencia:</span></div>
+        <div id="diff-badge" class="ok">Q 0.00 ✓ Cuadra</div>
+        <div style="flex:1"></div>
+        <button class="btn prim" onclick="guardarPartida()" id="btn-guardar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Guardar Partida
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h2>Partidas Registradas</h2><span class="tag" id="partidas-count-tag">0 partidas</span></div>
+    <div class="fpad" style="padding-bottom:8px">
+      <div class="fbar">
+        <input type="text" id="s-diario" placeholder="Buscar partida..." oninput="renderPartidas()" style="width:220px">
+        <select id="s-dtipo" onchange="renderPartidas()">
+          <option value="">Todos los tipos</option>
+          <option>Factura de Clientes</option>
+          <option>Factura de Proveedores</option>
+          <option>Pago Efectuado</option>
+          <option>Pago Recibido</option>
+          <option>Asiento Contable</option>
+          <option>Ajuste Reconciliación</option>
+          <option>Apertura Del Período</option>
+        </select>
+      </div>
+    </div>
+    <div id="partidas-list" style="padding:0 12px 12px"></div>
+  </div>
+</div>
+
+<!-- ══════════════ BALANCE DE SALDOS ══════════════ -->
+<div id="p-saldos" class="panel">
+  <div class="ehead" id="ehead-saldos"><h3>Los Migrantes — Balance de Saldos</h3><p id="ehead-saldos-p">NIT: 5390 UMG | Período: 01/01/2026 al 31/01/2026</p></div>
+  <div class="fbar">
+    <input type="text" id="s-saldos" placeholder="Buscar cuenta..." oninput="renderSaldos()" style="width:220px">
+    <select id="s-sclase" onchange="renderSaldos()">
+      <option value="">Todas las clases</option>
+      <option value="1">1 - Activos</option><option value="2">2 - Pasivos</option>
+      <option value="3">3 - Capital</option><option value="4">4 - Ingresos</option>
+      <option value="5">5 - Costos y Gastos</option><option value="6">6 - Otros Ing./Gas.</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;margin:0">
+      <input type="checkbox" id="s-snoZ" checked onchange="renderSaldos()"> Solo con movimiento
+    </label>
+  </div>
+  <div class="card">
+    <div class="ch"><h2>Balance de Saldos</h2><span class="tag" id="saldos-tag">Folio 1–6</span></div>
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th style="width:100px">Código</th><th>Nombre de Cuenta</th>
+          <th class="r" style="width:115px">Saldo Inicial</th>
+          <th class="r" style="width:115px">Sumas Debe</th>
+          <th class="r" style="width:115px">Sumas Haber</th>
+          <th class="r" style="width:115px">Saldo Deudor</th>
+          <th class="r" style="width:115px">Saldo Acreedor</th>
+        </tr></thead>
+        <tbody id="saldos-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ LIBRO DE MAYOR ══════════════ -->
+<div id="p-mayor" class="panel">
+  <div class="ehead"><h3>Los Migrantes — Libro de Mayor</h3><p id="ehead-mayor-p">NIT: 5390 UMG | Período: 01/01/2026 al 31/01/2026 | Guatemala</p></div>
+  <div class="fbar">
+    <input type="text" id="s-mayor" placeholder="Buscar cuenta..." oninput="renderMayor()" style="width:220px">
+    <select id="s-mclase" onchange="renderMayor()">
+      <option value="">Todas</option>
+      <option value="1">Activos</option><option value="2">Pasivos</option>
+      <option value="3">Capital</option><option value="4">Ingresos</option>
+      <option value="5">Costos/Gastos</option><option value="6">Otros</option>
+    </select>
+    <button class="btn" onclick="toggleMayor()">Expandir / Colapsar Todo</button>
+  </div>
+  <div id="mayor-container"></div>
+</div>
+
+<!-- ══════════════ BALANCE GENERAL ══════════════ -->
+<div id="p-balance" class="panel">
+  <div class="ehead"><h3>Los Migrantes — Balance General</h3><p id="ehead-balance-p">NIT: 5390 UMG | Al 31 de Enero de 2026 | ZAP System ERP</p></div>
+  <div class="bg-grid">
+    <div class="card">
+      <div class="ch"><h2>ACTIVOS</h2><span class="tag g" id="bg-act-tag">Q —</span></div>
+      <div class="tw"><table><thead><tr><th>Cuenta</th><th class="r" style="width:130px">Saldo (Q)</th></tr></thead><tbody id="bg-activo"></tbody></table></div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="ch"><h2>PASIVOS</h2><span class="tag" id="bg-pas-tag">Q —</span></div>
+        <div class="tw"><table><thead><tr><th>Cuenta</th><th class="r" style="width:130px">Saldo (Q)</th></tr></thead><tbody id="bg-pasivo"></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="ch"><h2>CAPITAL / PATRIMONIO</h2><span class="tag a" id="bg-cap-tag">Q —</span></div>
+        <div class="tw"><table><thead><tr><th>Cuenta</th><th class="r" style="width:130px">Saldo (Q)</th></tr></thead><tbody id="bg-capital"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="bg-validacion"><div class="tw"><table><tbody id="bg-check"></tbody></table></div></div>
+</div>
+
+<!-- ══════════════ PLAN DE CUENTAS ══════════════ -->
+<div id="p-cuentas" class="panel">
+
+  <!-- FORMULARIO AGREGAR CUENTA -->
+  <div class="card" style="margin-bottom:14px;border-left:3px solid var(--accent)">
+    <div class="ch">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:var(--accent)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <h2>Agregar Nueva Cuenta Contable</h2>
+      <span class="tag g">Catálogo Dinámico</span>
+    </div>
+    <div class="fpad">
+      <div id="cta-alert" style="display:none"></div>
+      <div style="display:grid;grid-template-columns:160px 1fr 200px auto;gap:10px;align-items:end">
+        <div>
+          <label>Código de Cuenta</label>
+          <input type="text" id="nc-codigo" placeholder="ej. 11107001" maxlength="20" style="font-family:var(--ffm)">
+        </div>
+        <div>
+          <label>Nombre de la Cuenta</label>
+          <input type="text" id="nc-nombre" placeholder="ej. Préstamos Bancarios por Cobrar">
+        </div>
+        <div>
+          <label>Tipo / Clase</label>
+          <select id="nc-tipo">
+            <option value="">— Seleccione —</option>
+            <option value="Activo">Activo</option>
+            <option value="Pasivo">Pasivo</option>
+            <option value="Capital">Capital</option>
+            <option value="Ingreso">Ingreso</option>
+            <option value="Gasto">Gasto</option>
+            <option value="Otro Ingreso">Otro Ingreso</option>
+            <option value="Otro Gasto">Otro Gasto</option>
+          </select>
+        </div>
+        <div>
+          <button class="btn acc" onclick="agregarCuenta()" style="height:33px;padding:0 16px;gap:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Agregar Cuenta
+          </button>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        La cuenta nueva quedará disponible de inmediato en el catálogo de partidas. No es posible registrar códigos duplicados.
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS Y TABLA -->
+  <div class="fbar">
+    <input type="text" id="s-cta" placeholder="Buscar código o nombre..." oninput="renderCuentas()" style="width:240px">
+    <select id="s-cclase" onchange="renderCuentas()">
+      <option value="">Todas</option>
+      <option value="1">1-Activos</option><option value="2">2-Pasivos</option>
+      <option value="3">3-Capital</option><option value="4">4-Ingresos</option>
+      <option value="5">5-Costos/Gastos</option><option value="6">6-Otros Ing./Gas.</option>
+    </select>
+    <span style="font-size:12px;color:var(--muted)" id="cta-count"></span>
+  </div>
+  <div class="card">
+    <div class="ch"><h2>Plan de Cuentas Maestro</h2><span class="tag">Los Migrantes</span></div>
+    <div class="tw">
+      <table><thead><tr><th style="width:110px">Código</th><th>Nombre</th><th style="width:120px">Tipo</th><th class="r" style="width:120px">Saldo Final (Q)</th><th class="c" style="width:60px">Origen</th><th class="c" style="width:90px">Acciones</th></tr></thead>
+      <tbody id="cuentas-body"></tbody></table>
+    </div>
+  </div>
+</div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- MODAL CONFIRM DELETE -->
+<div id="modal-bg">
+  <div id="modal">
+    <div class="mhdr"><h3>Confirmar eliminación</h3></div>
+    <div class="mbody"><p id="modal-msg" style="font-size:13px;color:var(--muted)"></p></div>
+    <div class="mfooter">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn dan" id="modal-confirm">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+// PLAN DE CUENTAS MAESTRO
+// ══════════════════════════════════════════════════════════════════════
+const CUENTAS = [
+  // ── ACTIVO CORRIENTE ──
+  {c:'1101',   n:'Caja General',                          t:'Activo'},
+  {c:'1102',   n:'Bancos',                                t:'Activo'},
+  {c:'1102001',n:'Banco G & T Continental',               t:'Activo'},
+  {c:'1102002',n:'Banco Agro Mercantil',                  t:'Activo'},
+  {c:'1102003',n:'Banco de Desarrollo Rural',             t:'Activo'},
+  {c:'1103',   n:'Cuentas por Cobrar',                    t:'Activo'},
+  {c:'1103001',n:'Clientes',                              t:'Activo'},
+  {c:'1103002',n:'Reserva Cuentas Incobrables',           t:'Activo'},
+  {c:'1103003',n:'Anticipo de Compras',                   t:'Activo'},
+  {c:'1103004',n:'Funcionarios y Empleados',              t:'Activo'},
+  {c:'1103005',n:'Otros Anticipos por Liquidar',          t:'Activo'},
+  {c:'1104',   n:'Impuestos',                             t:'Activo'},
+  {c:'1104001',n:'IVA Crédito Fiscal',                    t:'Activo'},
+  {c:'1104002',n:'ISR Trimestral',                        t:'Activo'},
+  {c:'1104003',n:'ISO',                                   t:'Activo'},
+  {c:'1104004',n:'Pagos a Cuenta ISR',                    t:'Activo'},
+  {c:'1104005',n:'Retenciones ISR',                       t:'Activo'},
+  {c:'1104006',n:'Retenciones IVA',                       t:'Activo'},
+  {c:'1104007',n:'Exenciones IVA',                        t:'Activo'},
+  {c:'1104008',n:'Impuestos y Contribuciones',            t:'Activo'},
+  {c:'1104010',n:'ISO por Acreditar',                     t:'Activo'},
+  // ── ACTIVO NO CORRIENTE (PROPIEDAD PLANTA Y EQUIPO) ──
+  {c:'1201',   n:'Mobiliario y Equipo',                   t:'Activo'},
+  {c:'1201001',n:'Depreciación Acumulada Mobiliario y Equipo', t:'Activo'},
+  {c:'1202',   n:'Vehículos',                             t:'Activo'},
+  {c:'1202001',n:'Depreciación Acumulada Vehículos',      t:'Activo'},
+  {c:'1203',   n:'Equipo de Cómputo',                     t:'Activo'},
+  {c:'1203001',n:'Depreciación Acumulada Equipo de Cómputo', t:'Activo'},
+  {c:'1204',   n:'Inmuebles',                             t:'Activo'},
+  {c:'1204001',n:'Edificios',                             t:'Activo'},
+  {c:'1204002',n:'Depreciación Acumulada de Edificios',   t:'Activo'},
+  {c:'1204003',n:'Terrenos',                              t:'Activo'},
+  {c:'1204004',n:'Gastos de Instalación',                 t:'Activo'},
+  {c:'1204005',n:'Amortización Acumulada Gastos de Instalación', t:'Activo'},
+  {c:'1204006',n:'Contingencias',                         t:'Activo'},
+  {c:'1204007',n:'Gastos Diferidos',                      t:'Activo'},
+  // ── PASIVO CORRIENTE ──
+  {c:'2101001',n:'Cuentas por Pagar',                     t:'Pasivo'},
+  {c:'2101002',n:'Acreedores',                            t:'Pasivo'},
+  {c:'2101003',n:'Sueldos por Pagar',                     t:'Pasivo'},
+  {c:'2101004',n:'Proveedores',                           t:'Pasivo'},
+  {c:'2101005',n:'Seguros por Pagar',                     t:'Pasivo'},
+  // ── IMPUESTOS POR PAGAR ──
+  {c:'2102',   n:'Impuestos por Pagar',                   t:'Pasivo'},
+  {c:'2102001',n:'IVA Débito Fiscal',                     t:'Pasivo'},
+  {c:'2102002',n:'ISR por Pagar',                         t:'Pasivo'},
+  {c:'2102003',n:'Cuota Laboral por Pagar',               t:'Pasivo'},
+  {c:'2102004',n:'ISO por Pagar',                         t:'Pasivo'},
+  {c:'2102005',n:'Cuota Patronal, Irtra, Intecap por Pagar', t:'Pasivo'},
+  // ── PRESTACIONES LABORALES ──
+  {c:'2103',   n:'Prestaciones Laborales por Pagar',      t:'Pasivo'},
+  {c:'2103001',n:'Vacaciones por Pagar',                  t:'Pasivo'},
+  {c:'2103002',n:'Bono 14 por Pagar',                     t:'Pasivo'},
+  {c:'2103003',n:'Aguinaldo por Pagar',                   t:'Pasivo'},
+  {c:'2103004',n:'Indemnizaciones por Pagar',             t:'Pasivo'},
+  // ── PROVISIONES ──
+  {c:'2104',   n:'Provisiones',                           t:'Pasivo'},
+  {c:'2104001',n:'Provisión por Contingencias',           t:'Pasivo'},
+  {c:'2104002',n:'Provisión Impuestos',                   t:'Pasivo'},
+  {c:'2104003',n:'Depósitos por Aplicar',                 t:'Pasivo'},
+  {c:'2104004',n:'Provisión Gastos Sociales',             t:'Pasivo'},
+  // ── CAPITAL, RESERVAS Y SUPERÁVIT ──
+  {c:'3101',   n:'Capital',                               t:'Capital'},
+  {c:'3101001',n:'Capital Suscrito y Pagado',             t:'Capital'},
+  {c:'3101002',n:'Ganancias y/o Pérdidas Acumuladas',     t:'Capital'},
+  {c:'3101003',n:'Ganancia del Ejercicio',                t:'Capital'},
+  {c:'3101004',n:'Reserva Legal',                         t:'Capital'},
+  {c:'3101005',n:'Ganancia del Ejercicio Anterior',       t:'Capital'},
+  {c:'3101006',n:'Pérdidas y Ganancias',                  t:'Capital'},
+  {c:'3101007',n:'Pérdida del Ejercicio',                 t:'Capital'},
+  {c:'3101008',n:'Pérdida del Ejercicio Anterior',        t:'Capital'},
+  {c:'3101009',n:'Ganancia Neta',                         t:'Capital'},
+  // ── INGRESOS POR VENTA O SERVICIOS ──
+  {c:'4101',   n:'Ingresos',                              t:'Ingreso'},
+  {c:'4101001',n:'Ventas Servicios',                      t:'Ingreso'},
+  {c:'4101002',n:'Descuentos Concedidos por Pronto Pago', t:'Ingreso'},
+  // ── COSTOS ──
+  {c:'5101',   n:'Costo y Gastos',                        t:'Gasto'},
+  {c:'5101001',n:'Compras',                               t:'Gasto'},
+  {c:'5101002',n:'Lubricantes',                           t:'Gasto'},
+  {c:'5101003',n:'Llantas',                               t:'Gasto'},
+  {c:'5101004',n:'Repuestos',                             t:'Gasto'},
+  // ── GASTOS DE OPERACIÓN ──
+  {c:'5201',   n:'Gastos de Operación',                   t:'Gasto'},
+  {c:'5201001',n:'Sueldos',                               t:'Gasto'},
+  {c:'5201002',n:'Bonificación Ley',                      t:'Gasto'},
+  {c:'5201003',n:'Vacaciones',                            t:'Gasto'},
+  {c:'5201004',n:'Bono 14',                               t:'Gasto'},
+  {c:'5201005',n:'Mantenimiento y Reparaciones',          t:'Gasto'},
+  {c:'5201006',n:'Indemnización',                         t:'Gasto'},
+  {c:'5201007',n:'Depreciaciones',                        t:'Gasto'},
+  {c:'5201008',n:'Papelería y Útiles',                    t:'Gasto'},
+  {c:'5201009',n:'Combustibles',                          t:'Gasto'},
+  {c:'5201010',n:'Material para Mantenimiento y Reparación', t:'Gasto'},
+  {c:'5201011',n:'Útiles y Enseres',                      t:'Gasto'},
+  {c:'5201012',n:'Agua Potable',                          t:'Gasto'},
+  {c:'5201013',n:'Cuotas Patronales IGSS',                t:'Gasto'},
+  {c:'5201014',n:'Repuesto y Accesorios',                 t:'Gasto'},
+  {c:'5201015',n:'Atención a Clientes',                   t:'Gasto'},
+  {c:'5201016',n:'Atención al Personal',                  t:'Gasto'},
+  {c:'5201017',n:'Donaciones y Contribuciones',           t:'Gasto'},
+  {c:'5201018',n:'Horas Extras',                          t:'Gasto'},
+  {c:'5201019',n:'Bono Mérito',                           t:'Gasto'},
+  {c:'5201020',n:'Alimentación de Personal',              t:'Gasto'},
+  {c:'5201023',n:'Cuota Laboral',                         t:'Gasto'},
+  {c:'5201024',n:'Tasa I.R.T.R.A.',                       t:'Gasto'},
+  {c:'5201025',n:'Tasa INTECAP',                          t:'Gasto'},
+  {c:'5201026',n:'Gastos de Gerencia',                    t:'Gasto'},
+  {c:'5201027',n:'Viáticos',                              t:'Gasto'},
+  {c:'5201028',n:'Alquileres',                            t:'Gasto'},
+  {c:'5201029',n:'Anticipo sobre Sueldo',                 t:'Gasto'},
+  {c:'5201030',n:'Alquileres / Vehículos',                t:'Gasto'},
+  {c:'5201032',n:'ISR Pagado',                            t:'Gasto'},
+  {c:'5201033',n:'Aguinaldo',                             t:'Gasto'},
+  {c:'5201034',n:'Recargo Tasa IRTRA',                    t:'Gasto'},
+  {c:'5201035',n:'Recargos Tasa INTECAP',                 t:'Gasto'},
+  {c:'5201036',n:'Gastos Bancarios',                      t:'Gasto'},
+  {c:'5201039',n:'Anticipo de Compras',                   t:'Gasto'},
+  {c:'5201040',n:'Impuesto a la Distribución del Petróleo', t:'Gasto'},
+  {c:'5201041',n:'Recargos por Mora',                     t:'Gasto'},
+  {c:'5201042',n:'Sueldos de Administración',             t:'Gasto'},
+  // ── SERVICIOS DIVERSOS ──
+  {c:'5202',   n:'Servicios Diversos',                    t:'Gasto'},
+  {c:'5202001',n:'Servicios y Honorarios Profesionales',  t:'Gasto'},
+  {c:'5202002',n:'Servicios Hospitalarios',               t:'Gasto'},
+  {c:'5202003',n:'Parqueos',                              t:'Gasto'},
+  {c:'5202004',n:'Capacitaciones',                        t:'Gasto'},
+  {c:'5202005',n:'Energía Eléctrica',                     t:'Gasto'},
+  {c:'5202006',n:'Servicios de Comunicación',             t:'Gasto'},
+  {c:'5202007',n:'Otras Gestiones de Gerencia',           t:'Gasto'},
+  {c:'5202008',n:'Impuestos y Contrib. Fisc. y Mpales.',  t:'Gasto'},
+  {c:'5202009',n:'Servicios Varios',                      t:'Gasto'},
+  {c:'5202011',n:'Seguros Vehículos',                     t:'Gasto'},
+  {c:'5202012',n:'Depreciación Mobiliario y Equipo',      t:'Gasto'},
+  {c:'5202013',n:'Depreciación Equipo de Cómputo',        t:'Gasto'},
+  {c:'5202014',n:'Depreciación Vehículos',                t:'Gasto'},
+  {c:'5202015',n:'Fletes',                                t:'Gasto'},
+  {c:'5202016',n:'Prestación de Servicios Técnicos',      t:'Gasto'},
+  // ── INGRESOS FINANCIEROS ──
+  {c:'6101',   n:'Ingresos Financieros',                  t:'Otro Ingreso'},
+  {c:'6101001',n:'Intereses Ganados',                     t:'Otro Ingreso'},
+  {c:'6101002',n:'Otros Ingresos',                        t:'Otro Ingreso'},
+  // ── GASTOS FINANCIEROS ──
+  {c:'6102',   n:'Gastos Financieros',                    t:'Otro Gasto'},
+  {c:'6102001',n:'Intereses Pagados',                     t:'Otro Gasto'},
+  {c:'6102003',n:'Gastos no Deducibles',                  t:'Otro Gasto'},
+  {c:'6102004',n:'Intereses Gasto',                       t:'Otro Gasto'},
+];
+
+// SALDOS INICIALES — inicializado en cero para comenzar desde cero
+const SALDOS_INICIALES = {};
+
+// PARTIDAS — inicializado vacío (sin partidas registradas)
+let PARTIDAS = [];
+
+let nextId = 1;
+let mayorExpanded = true;
+let pendingDeleteId = null;
+
+// ══════════════════════════════════════════════════════════════════════
+// MOTOR CONTABLE — calcula saldos dinámicamente
+// ══════════════════════════════════════════════════════════════════════
+function calcSaldos() {
+  const map = {};
+  CUENTAS.forEach(c => { map[c.c] = {cod:c.c,nom:c.n,tipo:c.t,si:SALDOS_INICIALES[c.c]||0,debe:0,haber:0}; });
+  PARTIDAS.forEach(p => {
+    p.lineas.forEach(l => {
+      if(!map[l.cod]) map[l.cod]={cod:l.cod,nom:l.n,tipo:'?',si:0,debe:0,haber:0};
+      map[l.cod].debe += (l.debe||0);
+      map[l.cod].haber += (l.haber||0);
+    });
+  });
+  Object.values(map).forEach(r => { r.sf = r.si + r.debe - r.haber; });
+  return map;
+}
+
+function getSaldo(cod) {
+  const m = calcSaldos();
+  return m[cod] ? m[cod].sf : 0;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// FORMATO
+// ══════════════════════════════════════════════════════════════════════
+const f2 = n => {
+  const v = parseFloat(n)||0;
+  const abs = Math.abs(v).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return v < 0 ? `(${abs})` : (v===0?'—':abs);
+};
+const fQ = n => { const v = parseFloat(n)||0; return 'Q '+Math.abs(v).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+const cls = v => parseFloat(v)<0?'neg':parseFloat(v)>0?'pos':'';
+
+// ══════════════════════════════════════════════════════════════════════
+// NAVEGACIÓN
+// ══════════════════════════════════════════════════════════════════════
+const TITLES = {
+  dashboard:'Dashboard — Resumen Ejecutivo',
+  diario:'Registro de Partidas — Libro Diario',
+  saldos:'Balance de Saldos',
+  mayor:'Libro de Mayor',
+  balance:'Balance General',
+  cuentas:'Plan de Cuentas Maestro',
+};
+function nav(id) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  const ni = document.querySelector(`.ni[onclick="nav('${id}')"]`);
+  if(ni) ni.classList.add('on');
+  document.getElementById('page-title').textContent = TITLES[id]||id;
+  if(id==='dashboard') renderDashboard();
+  if(id==='saldos') renderSaldos();
+  if(id==='mayor') renderMayor();
+  if(id==='balance') renderBalance();
+  if(id==='diario') { renderPartidas(); updateNextNum(); }
+  if(id==='cuentas') renderCuentas();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════════════════════
+function renderDashboard() {
+  const m = calcSaldos();
+
+  let ingMes=0, gastMes=0;
+  PARTIDAS.forEach(p=>p.lineas.forEach(l=>{
+    if(l.cod.startsWith('4') || l.cod.startsWith('6101')) ingMes+=(l.haber-l.debe);
+    if(l.cod.startsWith('5') || l.cod.startsWith('6102')) gastMes+=(l.debe-l.haber);
+  }));
+  const result = ingMes - gastMes;
+
+  // Total Activo y Pasivo desde saldos calculados
+  let totActivo=0, totPasivo=0;
+  Object.values(m).forEach(r=>{
+    if(r.cod[0]==='1') totActivo += r.sf;
+    if(r.cod[0]==='2') totPasivo += Math.abs(r.sf);
+  });
+
+  // CxC
+  const cxc = getSaldo('1103001');
+  // Caja+Bancos corriente
+  let caja = 0;
+  ['1101','1102001','1102002','1102003'].forEach(c=>{caja+=getSaldo(c)||0});
+
+  const resultCls = result>=0?'g':'r';
+  document.getElementById('dash-metrics').innerHTML = `
+    <div class="mc"><div class="lb">Total Activos</div><div class="vl">${fQ(totActivo)}</div><div class="sb">Saldos acumulados</div></div>
+    <div class="mc"><div class="lb">Total Pasivos</div><div class="vl r">${fQ(totPasivo)}</div><div class="sb">Corriente</div></div>
+    <div class="mc"><div class="lb">Ingresos del Período</div><div class="vl g">${fQ(ingMes)}</div><div class="sb">Servicios facturados</div></div>
+    <div class="mc"><div class="lb">Resultado Ejercicio</div><div class="vl ${resultCls}">${fQ(Math.abs(result))}</div><div class="sb">${result>=0?'Ganancia':'Pérdida'} neta</div></div>
+    <div class="mc"><div class="lb">Cuentas por Cobrar</div><div class="vl a">${fQ(Math.abs(cxc))}</div><div class="sb">Clientes al cierre</div></div>
+    <div class="mc"><div class="lb">Caja y Bancos Q</div><div class="vl">${fQ(Math.abs(caja))}</div><div class="sb">Moneda local</div></div>
+  `;
+
+  // Estado de resultados dinámico
+  // Agrupar gastos por cuenta
+  const gastosMap = {};
+  PARTIDAS.forEach(p=>p.lineas.forEach(l=>{
+    if(l.cod.startsWith('5') || l.cod.startsWith('6102')) {
+      if(!gastosMap[l.cod]) gastosMap[l.cod]={n:l.n,val:0};
+      gastosMap[l.cod].val += (l.debe-l.haber);
+    }
+  }));
+  const gastosRows = Object.values(gastosMap).filter(g=>g.val>0)
+    .sort((a,b)=>b.val-a.val).slice(0,8)
+    .map(g=>`<tr><td class="i1">${g.n}</td><td class="r neg">(${Math.abs(g.val).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2})})</td></tr>`).join('');
+
+  document.getElementById('er-tag').textContent = result>=0 ? `Ganancia: ${fQ(result)}` : `Pérdida: ${fQ(Math.abs(result))}`;
+
+  if(ingMes===0 && gastMes===0) {
+    document.getElementById('er-table').querySelector('tbody').innerHTML = `
+      <tr><td colspan="2" style="text-align:center;padding:30px;color:var(--light);font-size:12px">Sin movimientos registrados — ingrese partidas para ver el estado de resultados</td></tr>`;
+  } else {
+    document.getElementById('er-table').querySelector('tbody').innerHTML = `
+      <tr><td style="font-weight:600;color:var(--green)">Total Ingresos</td><td class="r pos" style="font-weight:700">${fQ(ingMes)}</td></tr>
+      ${gastosRows}
+      <tr class="${result>=0?'rres':'rw'}"><td><strong>Resultado del Ejercicio (${result>=0?'Ganancia':'Pérdida'})</strong></td><td class="r"><strong>${fQ(Math.abs(result))}</strong></td></tr>
+    `;
+  }
+
+  // Últimas partidas
+  const ul = [...PARTIDAS].reverse().slice(0,8);
+  document.getElementById('dash-partidas').innerHTML = ul.length ? ul.map(p => {
+    const tot = p.lineas.reduce((a,l)=>a+(l.debe||0),0);
+    return `<tr><td class="mono">${p.num}</td><td class="mono">${p.fecha.slice(5)}</td><td>${p.desc.substring(0,40)}</td><td class="r">${f2(tot)}</td></tr>`;
+  }).join('') : `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--light);font-size:12px">Sin partidas registradas</td></tr>`;
+
+  // Bancos
+  const bancos = [
+    {c:'1101',   n:'Caja General'},
+    {c:'1102001',n:'Banco G & T Continental'},
+    {c:'1102002',n:'Banco Agro Mercantil'},
+    {c:'1102003',n:'Banco de Desarrollo Rural'},
+    {c:'1103001',n:'Clientes (CxC)'},
+    {c:'1104001',n:'IVA Crédito Fiscal'},
+    {c:'1104002',n:'ISR Trimestral'},
+    {c:'1201',   n:'Mobiliario y Equipo'},
+    {c:'1202',   n:'Vehículos'},
+  ];
+  document.getElementById('dash-bancos').innerHTML = bancos.map(b=>{
+    const s = getSaldo(b.c)||0;
+    const st = s>0 ? '<span style="color:var(--green);font-size:11px">● Positivo</span>' : s<0 ? '<span style="color:var(--red);font-size:11px">● Negativo</span>' : '<span style="color:var(--muted);font-size:11px">● Sin movimiento</span>';
+    return `<tr><td class="mono">${b.c}</td><td>${b.n}</td><td class="r ${cls(s)}">${f2(s)}</td><td>${st}</td></tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// DIARIO — FORMULARIO
+// ══════════════════════════════════════════════════════════════════════
+function updateNextNum() {
+  const last = PARTIDAS.length ? PARTIDAS[PARTIDAS.length-1].id : 0;
+  document.getElementById('f-num').value = 'P-' + String(last+1).padStart(5,'0');
+  const hoy = new Date().toISOString().slice(0,10);
+  if(!document.getElementById('f-fecha').value) document.getElementById('f-fecha').value = hoy;
+}
+
+// ── AUTOCOMPLETE ENGINE ──────────────────────────────────────────────
+function filterCuentas(q) {
+  if(!q) return CUENTAS.slice(0, 12);
+  const ql = q.toLowerCase();
+  return CUENTAS.filter(c =>
+    c.c.toLowerCase().includes(ql) || c.n.toLowerCase().includes(ql)
+  ).slice(0, 14);
+}
+
+function highlight(str, q) {
+  if(!q) return str;
+  const idx = str.toLowerCase().indexOf(q.toLowerCase());
+  if(idx < 0) return str;
+  return str.slice(0, idx) +
+    `<span class="opt-mark">${str.slice(idx, idx + q.length)}</span>` +
+    str.slice(idx + q.length);
+}
+
+function makeCuentaInput(cod='', nom='') {
+  const uid = 'cta_' + Math.random().toString(36).slice(2,8);
+  const displayVal = cod ? `${cod} — ${nom}` : '';
+  // Create the dropdown at body level to escape any stacking context
+  const dd = document.createElement('div');
+  dd.className = 'cta-dropdown';
+  dd.id = 'dd_' + uid;
+  document.body.appendChild(dd);
+  return `
+  <div class="cta-wrap">
+    <input type="text" class="cta-inp${cod?' has-value':''}"
+      id="${uid}"
+      data-cod="${cod}" data-nom="${nom}"
+      value="${displayVal}"
+      placeholder="Código o nombre de cuenta..."
+      autocomplete="off"
+      oninput="onCtaInput(this)"
+      onkeydown="onCtaKey(event,this)"
+      onblur="onCtaBlur(this)"
+      onfocus="onCtaInput(this)">
+  </div>`;
+}
+
+function positionDropdown(inp, dd) {
+  const rect = inp.getBoundingClientRect();
+  dd.style.top    = (rect.bottom + 3) + 'px';
+  dd.style.left   = rect.left + 'px';
+  dd.style.width  = Math.max(rect.width, 320) + 'px';
+}
+
+function onCtaInput(inp) {
+  const q = inp.value.trim();
+  const dd = document.getElementById('dd_' + inp.id);
+  if(!dd) return;
+  const results = filterCuentas(q === (inp.dataset.cod ? `${inp.dataset.cod} — ${inp.dataset.nom}` : '') ? '' : q);
+
+  if(!results.length) {
+    dd.innerHTML = `<div class="cta-no-res">Sin resultados para "${q}"</div>`;
+    positionDropdown(inp, dd);
+    dd.classList.add('open');
+    return;
+  }
+
+  const rawQ = q.startsWith(inp.dataset.cod || '__') ? '' : q;
+  dd.innerHTML = results.map((c, i) => `
+    <div class="cta-opt${i===0?' active':''}"
+      data-cod="${c.c}" data-nom="${c.n}"
+      onmousedown="selectCta(this,'${inp.id}')"
+    >
+      <span class="opt-cod">${highlight(c.c, rawQ)}</span>
+      <span class="opt-nom">${highlight(c.n, rawQ)}</span>
+      <span class="opt-tipo">${c.t}</span>
+    </div>`).join('');
+  positionDropdown(inp, dd);
+  dd.classList.add('open');
+}
+
+function selectCta(opt, inpId) {
+  const inp = document.getElementById(inpId);
+  const cod = opt.dataset.cod;
+  const nom = opt.dataset.nom;
+  inp.value = `${cod} — ${nom}`;
+  inp.dataset.cod = cod;
+  inp.dataset.nom = nom;
+  inp.classList.add('has-value');
+  const dd = document.getElementById('dd_' + inpId);
+  if(dd) dd.classList.remove('open');
+  updateTotals();
+}
+
+function onCtaBlur(inp) {
+  setTimeout(() => {
+    const dd = document.getElementById('dd_' + inp.id);
+    if(dd) dd.classList.remove('open');
+    if(!inp.dataset.cod) {
+      inp.value = '';
+    } else {
+      inp.value = `${inp.dataset.cod} — ${inp.dataset.nom}`;
+    }
+  }, 160);
+}
+
+function onCtaKey(e, inp) {
+  const dd = document.getElementById('dd_' + inp.id);
+  if(!dd) return;
+  const opts = [...dd.querySelectorAll('.cta-opt')];
+  const cur = opts.findIndex(o=>o.classList.contains('active'));
+  if(e.key==='ArrowDown') {
+    e.preventDefault();
+    opts[cur]?.classList.remove('active');
+    const next = Math.min(cur+1, opts.length-1);
+    opts[next]?.classList.add('active');
+    opts[next]?.scrollIntoView({block:'nearest'});
+  } else if(e.key==='ArrowUp') {
+    e.preventDefault();
+    opts[cur]?.classList.remove('active');
+    const prev = Math.max(cur-1, 0);
+    opts[prev]?.classList.add('active');
+    opts[prev]?.scrollIntoView({block:'nearest'});
+  } else if(e.key==='Enter' || e.key==='Tab') {
+    const active = dd.querySelector('.cta-opt.active');
+    if(active && dd.classList.contains('open')) {
+      e.preventDefault();
+      selectCta(active, inp.id);
+    }
+  } else if(e.key==='Escape') {
+    dd.classList.remove('open');
+  }
+}
+
+// ── SAFE FORMULA EVALUATOR ───────────────────────────────────────────
+function evalFormula(raw) {
+  const clean = raw.replace(/[^0-9+\-*/().%\s]/g, '').trim();
+  if(!clean) return 0;
+  try {
+    // eslint-disable-next-line no-new-func
+    const result = Function('"use strict"; return (' + clean + ')')();
+    const n = parseFloat(result);
+    return isFinite(n) ? Math.abs(n) : 0;
+  } catch { return 0; }
+}
+
+function onFormulaBlur(inp) {
+  const raw = inp.value.trim();
+  if(!raw) { inp.classList.remove('evaluated'); return; }
+  // If it looks like a pure number already, just parse
+  const isPlain = /^[\d.]+$/.test(raw.replace(/,/g,''));
+  const val = evalFormula(raw);
+  inp.value = val > 0 ? val.toFixed(2) : '';
+  if(val > 0) {
+    inp.classList.add('evaluated');
+  } else {
+    inp.classList.remove('evaluated');
+  }
+  updateTotals();
+}
+
+function onFormulaFocus(inp) {
+  inp.classList.remove('evaluated');
+}
+
+// ── ADD ROW ──────────────────────────────────────────────────────────
+function addRow(cod='', nom='', debe='', haber='') {
+  const tb = document.getElementById('grid-body');
+  const tr = document.createElement('tr');
+  const rowNum = tb.rows.length + 1;
+  // Resolve nom from CUENTAS if only cod given
+  if(cod && !nom) {
+    const found = CUENTAS.find(c=>c.c===cod);
+    if(found) nom = found.n;
+  }
+
+  tr.innerHTML = `
+    <td class="c mono" style="color:var(--muted);width:28px">${rowNum}</td>
+    <td>${makeCuentaInput(cod, nom)}</td>
+    <td><input type="text" class="ci formula debe-inp" placeholder="0.00"
+      value="${debe}"
+      onfocus="onFormulaFocus(this)"
+      onblur="onFormulaBlur(this)"
+      oninput="updateTotals()"></td>
+    <td><input type="text" class="ci formula haber-inp" placeholder="0.00"
+      value="${haber}"
+      onfocus="onFormulaFocus(this)"
+      onblur="onFormulaBlur(this)"
+      oninput="updateTotals()"></td>
+    <td><button class="del-row" onclick="delRow(this)" title="Eliminar línea">✕</button></td>
+  `;
+  if(debe) tr.querySelector('.debe-inp').classList.add('evaluated');
+  if(haber) tr.querySelector('.haber-inp').classList.add('evaluated');
+  tb.appendChild(tr);
+  updateTotals();
+}
+
+function delRow(btn) {
+  const tr = btn.closest('tr');
+  // Remove any body-level dropdown belonging to this row's cta-inp
+  const ctaInp = tr.querySelector('.cta-inp');
+  if(ctaInp) {
+    const dd = document.getElementById('dd_' + ctaInp.id);
+    if(dd) dd.remove();
+  }
+  tr.remove();
+  document.querySelectorAll('#grid-body tr').forEach((r,i)=>{ r.cells[0].textContent = i+1; });
+  updateTotals();
+}
+
+function updateTotals() {
+  let debe=0, haber=0;
+  document.querySelectorAll('#grid-body tr').forEach(r=>{
+    debe  += parseFloat(r.querySelector('.debe-inp').value)  || 0;
+    haber += parseFloat(r.querySelector('.haber-inp').value) || 0;
+  });
+  const diff = Math.abs(debe - haber);
+  document.getElementById('tot-debe').textContent = fQ(debe);
+  document.getElementById('tot-haber').textContent = fQ(haber);
+  const badge = document.getElementById('diff-badge');
+  if(diff < 0.01) {
+    badge.textContent = 'Q 0.00 ✓ Cuadra'; badge.className='ok';
+  } else {
+    badge.textContent = `${fQ(diff)} ✗ No cuadra`; badge.className='bad';
+  }
+}
+
+function clearForm() {
+  // Remove body-level dropdowns for existing rows
+  document.querySelectorAll('#grid-body .cta-inp').forEach(inp=>{
+    const dd = document.getElementById('dd_' + inp.id);
+    if(dd) dd.remove();
+  });
+  document.getElementById('grid-body').innerHTML = '';
+  document.getElementById('f-desc').value = '';
+  updateTotals();
+  updateNextNum();
+  addRow(); addRow();
+}
+
+function guardarPartida() {
+  const fecha = document.getElementById('f-fecha').value;
+  const tipo = document.getElementById('f-tipo').value;
+  const desc = document.getElementById('f-desc').value.trim();
+
+  if(!fecha) { alert('Ingrese la fecha de la partida.'); return; }
+  if(!desc) { alert('Ingrese una descripción para la partida.'); return; }
+
+  let debe=0, haber=0;
+  const lineas = [];
+  document.querySelectorAll('#grid-body tr').forEach(r=>{
+    const ctaInp = r.querySelector('.cta-inp');
+    const d = parseFloat(r.querySelector('.debe-inp').value)||0;
+    const h = parseFloat(r.querySelector('.haber-inp').value)||0;
+    if(d>0||h>0) {
+      debe+=d; haber+=h;
+      const cod = ctaInp?.dataset.cod || '';
+      const nom = ctaInp?.dataset.nom || cod;
+      lineas.push({cod, n:nom, debe:d, haber:h});
+    }
+  });
+
+  if(lineas.length < 2) { alert('Una partida debe tener al menos 2 líneas con montos.'); return; }
+  if(Math.abs(debe-haber)>0.01) {
+    alert(`La partida no cuadra.\nDebe: Q ${debe.toFixed(2)}\nHaber: Q ${haber.toFixed(2)}\nDiferencia: Q ${Math.abs(debe-haber).toFixed(2)}`);
+    return;
+  }
+
+  const num = 'P-' + String(nextId).padStart(5,'0');
+  PARTIDAS.push({id:nextId, num, fecha, tipo, desc, lineas});
+  nextId++;
+
+  clearForm();
+  renderPartidas();
+  renderDashboard();
+  alert(`Partida ${num} guardada exitosamente.`);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// LISTA DE PARTIDAS
+// ══════════════════════════════════════════════════════════════════════
+function renderPartidas() {
+  const q = (document.getElementById('s-diario')?.value||'').toLowerCase();
+  const t = document.getElementById('s-dtipo')?.value||'';
+  let list = PARTIDAS.filter(p=>{
+    const match = p.desc.toLowerCase().includes(q)||p.num.toLowerCase().includes(q)||p.fecha.includes(q);
+    const tmatch = !t||p.tipo===t;
+    return match && tmatch;
+  }).reverse();
+
+  document.getElementById('partidas-count-tag').textContent = PARTIDAS.length + ' partidas';
+
+  if(!list.length) {
+    document.getElementById('partidas-list').innerHTML = '<div style="text-align:center;padding:30px;color:var(--light);font-size:12px">No hay partidas registradas</div>';
+    return;
+  }
+
+  document.getElementById('partidas-list').innerHTML = list.map(p=>{
+    const totD = p.lineas.reduce((a,l)=>a+(l.debe||0),0);
+    const linHtml = p.lineas.map((l,i)=>`
+      <tr>
+        <td class="mono">${i+1}</td>
+        <td class="mono">${l.cod}</td>
+        <td>${l.n}</td>
+        <td class="r">${l.debe>0?f2(l.debe):'—'}</td>
+        <td class="r">${l.haber>0?f2(l.haber):'—'}</td>
+      </tr>`).join('');
+    return `
+    <div class="partida-row" id="pr-${p.id}">
+      <div class="partida-hdr" onclick="togglePartida(${p.id})">
+        <span class="partida-num">${p.num}</span>
+        <span class="partida-fecha">${p.fecha}</span>
+        <span class="partida-desc">${p.desc}</span>
+        <span style="font-size:10px;color:var(--muted);margin-right:6px">${p.tipo}</span>
+        <span class="partida-monto">${fQ(totD)}</span>
+        <button class="btn dan" style="padding:3px 8px;font-size:11px;margin-left:8px" onclick="event.stopPropagation();confirmDelete(${p.id})">✕</button>
+      </div>
+      <div class="partida-body" id="pb-${p.id}">
+        <table>
+          <thead><tr><th style="width:28px">#</th><th style="width:100px">Código</th><th>Cuenta</th><th class="r" style="width:110px">Debe (Q)</th><th class="r" style="width:110px">Haber (Q)</th></tr></thead>
+          <tbody>${linHtml}</tbody>
+          <tfoot><tr class="rst"><td colspan="3" style="font-weight:700">TOTALES (Debe = Haber ✓)</td><td class="r">${f2(totD)}</td><td class="r">${f2(p.lineas.reduce((a,l)=>a+(l.haber||0),0))}</td></tr></tfoot>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togglePartida(id) {
+  const body = document.getElementById('pb-'+id);
+  if(body) body.classList.toggle('open');
+}
+
+function confirmDelete(id) {
+  pendingDeleteId = id;
+  const p = PARTIDAS.find(x=>x.id===id);
+  document.getElementById('modal-msg').textContent = `¿Eliminar la partida ${p?.num} — "${p?.desc}"? Esta acción no se puede deshacer.`;
+  document.getElementById('modal-bg').classList.add('open');
+  document.getElementById('modal-confirm').onclick = () => {
+    PARTIDAS = PARTIDAS.filter(x=>x.id!==pendingDeleteId);
+    closeModal();
+    renderPartidas();
+    renderDashboard();
+  };
+}
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); pendingDeleteCuenta = null; }
+
+// ══════════════════════════════════════════════════════════════════════
+// BALANCE DE SALDOS
+// ══════════════════════════════════════════════════════════════════════
+const GRUPOS_SALDOS = {
+  '1':'1 — Activos','2':'2 — Pasivos','3':'3 — Capital',
+  '4':'4 — Ingresos','5':'5 — Costos y Gastos','6':'6 — Otros Ingresos y Gastos'
+};
+
+function renderSaldos() {
+  const m = calcSaldos();
+  const q = (document.getElementById('s-saldos')?.value||'').toLowerCase();
+  const cl = document.getElementById('s-sclase')?.value||'';
+  const noZ = document.getElementById('s-snoZ')?.checked;
+
+  let html = '';
+  let totSI=0,totD=0,totH=0,totDeud=0,totAcr=0;
+  let curGrp = '';
+
+  CUENTAS.forEach(c=>{
+    const r = m[c.c];
+    if(!r) return;
+    const grp = c.c[0];
+    if(!q && !cl) {
+      if(grp !== curGrp) {
+        curGrp = grp;
+        html += `<tr class="rg"><td colspan="7">${GRUPOS_SALDOS[grp]||grp}</td></tr>`;
+      }
+    }
+    const matchQ = c.c.toLowerCase().includes(q)||c.n.toLowerCase().includes(q);
+    const matchCl = !cl||grp===cl;
+    const hasMove = r.debe>0||r.haber>0;
+    if(!matchQ||!matchCl||(noZ&&!hasMove)) return;
+
+    const sfV = r.si + r.debe - r.haber;
+    const deud = sfV>0?sfV:0;
+    const acr = sfV<0?Math.abs(sfV):0;
+    totSI+=r.si; totD+=r.debe; totH+=r.haber; totDeud+=deud; totAcr+=acr;
+
+    html += `<tr>
+      <td class="mono">${c.c}</td>
+      <td class="i1">${c.n}</td>
+      <td class="r">${r.si!==0?f2(r.si):'—'}</td>
+      <td class="r">${r.debe>0?f2(r.debe):'—'}</td>
+      <td class="r">${r.haber>0?f2(r.haber):'—'}</td>
+      <td class="r ${deud>0?'pos':''}">${deud>0?f2(deud):'—'}</td>
+      <td class="r ${acr>0?'neg':''}">${acr>0?f2(acr):'—'}</td>
+    </tr>`;
+  });
+
+  html += `<tr class="rtot">
+    <td colspan="2">TOTAL GENERAL</td>
+    <td class="r">${f2(totSI)}</td>
+    <td class="r">${f2(totD)}</td>
+    <td class="r">${f2(totH)}</td>
+    <td class="r">${f2(totDeud)}</td>
+    <td class="r">${f2(totAcr)}</td>
+  </tr>`;
+
+  document.getElementById('saldos-body').innerHTML = html;
+  document.getElementById('saldos-tag').textContent = `Saldo Deudor = ${fQ(totDeud)} | Saldo Acreedor = ${fQ(totAcr)}`;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// LIBRO DE MAYOR
+// ══════════════════════════════════════════════════════════════════════
+function renderMayor() {
+  const m = calcSaldos();
+  const q = (document.getElementById('s-mayor')?.value||'').toLowerCase();
+  const cl = document.getElementById('s-mclase')?.value||'';
+
+  // Agrupar movimientos por cuenta
+  const movMap = {};
+  PARTIDAS.forEach(p=>{
+    p.lineas.forEach(l=>{
+      if(!movMap[l.cod]) movMap[l.cod]=[];
+      movMap[l.cod].push({fecha:p.fecha,desc:p.desc,tipo:p.tipo,ref:p.num,debe:l.debe||0,haber:l.haber||0});
+    });
+  });
+
+  // Filtrar cuentas con movimiento
+  const cuentasMov = CUENTAS.filter(c=>{
+    const matchQ = c.c.toLowerCase().includes(q)||c.n.toLowerCase().includes(q);
+    const matchCl = !cl||c.c[0]===cl;
+    const hasMov = !!movMap[c.c];
+    return matchQ && matchCl && hasMov;
+  });
+
+  if(!cuentasMov.length) {
+    document.getElementById('mayor-container').innerHTML = '<div style="text-align:center;padding:40px;color:var(--light)">No hay cuentas con movimiento para los filtros seleccionados</div>';
+    return;
+  }
+
+  let html = '';
+  cuentasMov.forEach(c=>{
+    const si = SALDOS_INICIALES[c.c]||0;
+    const movs = (movMap[c.c]||[]).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+    let saldo = si;
+    let movHtml = '';
+    movs.forEach(mv=>{
+      saldo = saldo + mv.debe - mv.haber;
+      movHtml += `<tr>
+        <td class="mono">${mv.fecha.slice(5)+'/'+mv.fecha.slice(0,4)}</td>
+        <td>${mv.desc.length>45?mv.desc.substring(0,45)+'…':mv.desc}</td>
+        <td style="font-size:10.5px;color:var(--muted)">${mv.tipo}</td>
+        <td class="mono c">${mv.ref}</td>
+        <td class="r">${mv.debe>0?f2(mv.debe):'—'}</td>
+        <td class="r">${mv.haber>0?f2(mv.haber):'—'}</td>
+        <td class="r" style="font-weight:600;${saldo<0?'color:var(--red)':'color:var(--navy)'}">${f2(saldo)}</td>
+      </tr>`;
+    });
+
+    const r = m[c.c];
+    const sfFinal = r ? r.sf : si;
+    html += `
+    <div class="mayor-card" data-id="${c.c}">
+      <div class="mayor-hdr">
+        <span class="mayor-cod">${c.c}</span>
+        <span class="mayor-nom">${c.n}</span>
+        <span class="mayor-si">SI: ${f2(si)}</span>
+      </div>
+      <div class="mayor-body" style="display:${mayorExpanded?'block':'none'}">
+        <div class="tw">
+          <table>
+            <thead><tr>
+              <th style="width:80px">Fecha</th><th>Descripción</th>
+              <th style="width:110px">Tipo</th><th class="c" style="width:75px">Ref.</th>
+              <th class="r" style="width:105px">Debe</th>
+              <th class="r" style="width:105px">Haber</th>
+              <th class="r" style="width:115px">Saldo</th>
+            </tr></thead>
+            <tbody>
+              <tr style="background:#f0f4fa"><td colspan="4" style="font-weight:700;color:var(--navy2);font-size:11px">SALDO INICIAL</td>
+              <td class="r" colspan="3" style="font-weight:700;font-family:var(--ffm)">${f2(si)}</td></tr>
+              ${movHtml}
+              <tr class="rst"><td colspan="4" style="font-weight:700">SALDO FINAL</td>
+              <td class="r" colspan="3" style="font-weight:700;${sfFinal<0?'color:var(--red)':'color:var(--green)'}">${f2(sfFinal)}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('mayor-container').innerHTML = html;
+  // Click en header para colapsar
+  document.querySelectorAll('.mayor-hdr').forEach(h=>{
+    h.style.cursor='pointer';
+    h.onclick = ()=>{ const b=h.nextElementSibling; b.style.display=b.style.display==='none'?'block':'none'; };
+  });
+}
+
+function toggleMayor() {
+  mayorExpanded = !mayorExpanded;
+  document.querySelectorAll('.mayor-body').forEach(b=>{ b.style.display = mayorExpanded?'block':'none'; });
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// BALANCE GENERAL
+// ══════════════════════════════════════════════════════════════════════
+function bgRow(tipo,nombre,val,indent) {
+  const indCls = indent===1?'i1':indent===2?'i2':'';
+  if(tipo==='group') return `<tr class="rg"><td colspan="2">${nombre}</td></tr>`;
+  if(tipo==='subgroup') return `<tr class="rsg"><td class="i1" colspan="2">${nombre}</td></tr>`;
+  if(tipo==='leaf') return `<tr><td class="i2">${nombre}</td><td class="r ${cls(val)}">${f2(val)}</td></tr>`;
+  if(tipo==='sub') return `<tr class="rst"><td class="i1"><strong>${nombre}</strong></td><td class="r"><strong>${f2(val)}</strong></td></tr>`;
+  if(tipo==='total') return `<tr class="rres"><td><strong>${nombre}</strong></td><td class="r"><strong>${f2(val)}</strong></td></tr>`;
+  if(tipo==='grand') return `<tr class="rtot"><td><strong>${nombre}</strong></td><td class="r"><strong>${f2(val)}</strong></td></tr>`;
+  if(tipo==='result') return `<tr class="rw"><td style="font-weight:700">${nombre}</td><td class="r" style="font-weight:700">${f2(val)}</td></tr>`;
+  return '';
+}
+
+function renderBalance() {
+  const m = calcSaldos();
+  const g = c => (m[c]?m[c].sf:0);
+
+  // ACTIVOS — Cuentas de la nueva nomenclatura
+  let act = '';
+  act += bgRow('group','ACTIVO CORRIENTE');
+  act += bgRow('subgroup','Caja y Bancos');
+  act += bgRow('leaf','Caja General',g('1101'));
+  act += bgRow('leaf','Banco G & T Continental',g('1102001'));
+  act += bgRow('leaf','Banco Agro Mercantil',g('1102002'));
+  act += bgRow('leaf','Banco de Desarrollo Rural',g('1102003'));
+  const totBancos = g('1102001')+g('1102002')+g('1102003');
+  act += bgRow('sub','Total Bancos',totBancos);
+  const totCajaB = g('1101')+totBancos;
+  act += bgRow('total','TOTAL CAJA Y BANCOS',totCajaB);
+
+  act += bgRow('subgroup','Cuentas por Cobrar');
+  act += bgRow('leaf','Clientes',g('1103001'));
+  act += bgRow('leaf','Reserva Cuentas Incobrables',g('1103002'));
+  act += bgRow('leaf','Anticipo de Compras',g('1103003'));
+  act += bgRow('leaf','Funcionarios y Empleados',g('1103004'));
+  act += bgRow('leaf','Otros Anticipos por Liquidar',g('1103005'));
+  const totCxC = g('1103001')+g('1103002')+g('1103003')+g('1103004')+g('1103005');
+  act += bgRow('total','TOTAL CUENTAS POR COBRAR',totCxC);
+
+  act += bgRow('subgroup','Impuestos por Cobrar');
+  act += bgRow('leaf','IVA Crédito Fiscal',g('1104001'));
+  act += bgRow('leaf','ISR Trimestral',g('1104002'));
+  act += bgRow('leaf','ISO',g('1104003'));
+  act += bgRow('leaf','Pagos a Cuenta ISR',g('1104004'));
+  act += bgRow('leaf','Retenciones ISR',g('1104005'));
+  act += bgRow('leaf','Retenciones IVA',g('1104006'));
+  act += bgRow('leaf','Exenciones IVA',g('1104007'));
+  act += bgRow('leaf','ISO por Acreditar',g('1104010'));
+  const totImpCob = g('1104001')+g('1104002')+g('1104003')+g('1104004')+g('1104005')+g('1104006')+g('1104007')+g('1104010');
+  act += bgRow('total','TOTAL IMPUESTOS Y CONTRIB.',totImpCob);
+
+  const totActCorriente = totCajaB+totCxC+totImpCob;
+  act += bgRow('total','TOTAL ACTIVO CORRIENTE',totActCorriente);
+
+  act += bgRow('group','ACTIVO NO CORRIENTE (PPE)');
+  act += bgRow('leaf','Mobiliario y Equipo',g('1201'));
+  act += bgRow('leaf','Dep. Acumulada Mob. y Equipo',g('1201001'));
+  act += bgRow('leaf','Vehículos',g('1202'));
+  act += bgRow('leaf','Dep. Acumulada Vehículos',g('1202001'));
+  act += bgRow('leaf','Equipo de Cómputo',g('1203'));
+  act += bgRow('leaf','Dep. Acumulada Equipo Cómputo',g('1203001'));
+  act += bgRow('leaf','Edificios',g('1204001'));
+  act += bgRow('leaf','Dep. Acumulada Edificios',g('1204002'));
+  act += bgRow('leaf','Terrenos',g('1204003'));
+  act += bgRow('leaf','Gastos de Instalación',g('1204004'));
+  act += bgRow('leaf','Gastos Diferidos',g('1204007'));
+  const totActFijo = g('1201')+g('1201001')+g('1202')+g('1202001')+g('1203')+g('1203001')+g('1204001')+g('1204002')+g('1204003')+g('1204004')+g('1204007');
+  act += bgRow('total','TOTAL ACTIVO NO CORRIENTE',totActFijo);
+  const totActivos = totActCorriente+totActFijo;
+  act += bgRow('grand','TOTAL ACTIVOS',totActivos);
+
+  // PASIVOS
+  let pas = '';
+  pas += bgRow('group','PASIVO CORRIENTE');
+  pas += bgRow('leaf','Cuentas por Pagar',Math.abs(g('2101001')));
+  pas += bgRow('leaf','Acreedores',Math.abs(g('2101002')));
+  pas += bgRow('leaf','Sueldos por Pagar',Math.abs(g('2101003')));
+  pas += bgRow('leaf','Proveedores',Math.abs(g('2101004')));
+  pas += bgRow('leaf','Seguros por Pagar',Math.abs(g('2101005')));
+  const totPC = Math.abs(g('2101001'))+Math.abs(g('2101002'))+Math.abs(g('2101003'))+Math.abs(g('2101004'))+Math.abs(g('2101005'));
+  pas += bgRow('sub','Total Cuentas por Pagar',totPC);
+
+  pas += bgRow('subgroup','Impuestos por Pagar');
+  pas += bgRow('leaf','IVA Débito Fiscal',Math.abs(g('2102001')));
+  pas += bgRow('leaf','ISR por Pagar',Math.abs(g('2102002')));
+  pas += bgRow('leaf','Cuota Laboral',Math.abs(g('2102003')));
+  pas += bgRow('leaf','ISO por Pagar',Math.abs(g('2102004')));
+  pas += bgRow('leaf','Cuota Patronal/IRTRA/INTECAP',Math.abs(g('2102005')));
+  const totImpPag = Math.abs(g('2102001'))+Math.abs(g('2102002'))+Math.abs(g('2102003'))+Math.abs(g('2102004'))+Math.abs(g('2102005'));
+  pas += bgRow('sub','Total Impuestos',totImpPag);
+
+  pas += bgRow('subgroup','Prestaciones Laborales');
+  pas += bgRow('leaf','Vacaciones por Pagar',Math.abs(g('2103001')));
+  pas += bgRow('leaf','Bono 14 por Pagar',Math.abs(g('2103002')));
+  pas += bgRow('leaf','Aguinaldo por Pagar',Math.abs(g('2103003')));
+  pas += bgRow('leaf','Indemnizaciones por Pagar',Math.abs(g('2103004')));
+  const totPrest = Math.abs(g('2103001'))+Math.abs(g('2103002'))+Math.abs(g('2103003'))+Math.abs(g('2103004'));
+  pas += bgRow('sub','Total Prestaciones',totPrest);
+
+  pas += bgRow('subgroup','Provisiones');
+  pas += bgRow('leaf','Provisión Contingencias',Math.abs(g('2104001')));
+  pas += bgRow('leaf','Provisión Impuestos',Math.abs(g('2104002')));
+  pas += bgRow('leaf','Provisión Gastos Sociales',Math.abs(g('2104004')));
+  const totProv2 = Math.abs(g('2104001'))+Math.abs(g('2104002'))+Math.abs(g('2104004'));
+  pas += bgRow('sub','Total Provisiones',totProv2);
+
+  const totPasCorriente = totPC+totImpPag+totPrest+totProv2;
+  pas += bgRow('total','TOTAL PASIVO CORRIENTE',totPasCorriente);
+  pas += bgRow('grand','TOTAL PASIVOS',totPasCorriente);
+
+  // CAPITAL
+  let ingMes=0, gastMes=0;
+  PARTIDAS.forEach(p=>p.lineas.forEach(l=>{
+    if(l.cod.startsWith('4') || l.cod.startsWith('6101')) ingMes+=(l.haber-l.debe);
+    if(l.cod.startsWith('5') || l.cod.startsWith('6102')) gastMes+=(l.debe-l.haber);
+  }));
+  const resultEj = ingMes - gastMes;
+
+  let cap = '';
+  cap += bgRow('subgroup','Capital y Reservas');
+  cap += bgRow('leaf','Capital Suscrito y Pagado',Math.abs(g('3101001')));
+  cap += bgRow('leaf','Reserva Legal',Math.abs(g('3101004')));
+  cap += bgRow('leaf','Ganancia Ejercicio Anterior',Math.abs(g('3101005')));
+  cap += bgRow('leaf','Pérdida Ejercicio Anterior',g('3101008'));
+  cap += bgRow('leaf','Ganancias/Pérdidas Acumuladas',g('3101002'));
+  const capNeto = Math.abs(g('3101001'))+Math.abs(g('3101004'))+Math.abs(g('3101005'))+g('3101008')+g('3101002');
+  cap += bgRow('sub','Total Capital y Reservas',capNeto);
+  cap += bgRow('result',resultEj>=0?'Resultado del Ejercicio (Ganancia)':'Resultado del Ejercicio (Pérdida)',resultEj);
+  const totCap = capNeto+resultEj;
+  cap += bgRow('total','TOTAL CAPITAL',totCap);
+
+  document.getElementById('bg-activo').innerHTML = act;
+  document.getElementById('bg-pasivo').innerHTML = pas;
+  document.getElementById('bg-capital').innerHTML = cap;
+  document.getElementById('bg-act-tag').textContent = 'Q '+Math.abs(totActivos).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('bg-pas-tag').textContent = 'Q '+totPasCorriente.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('bg-cap-tag').textContent = 'Resultado: Q '+Math.abs(resultEj).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // Validación
+  const totalPasCap = totPasCorriente + totCap;
+  const cuadra = Math.abs(Math.abs(totActivos) - Math.abs(totalPasCap)) < 1;
+  document.getElementById('bg-check').innerHTML = `
+    <tr class="rtot">
+      <td style="width:50%"><strong>TOTAL ACTIVO</strong></td>
+      <td class="r" style="width:130px"><strong>${fQ(Math.abs(totActivos))}</strong></td>
+      <td style="width:50%"><strong>TOTAL PASIVO + CAPITAL</strong></td>
+      <td class="r" style="width:130px"><strong>${fQ(Math.abs(totalPasCap))}</strong></td>
+    </tr>
+    <tr style="background:${cuadra?'var(--greenL)':'var(--redL)'}">
+      <td colspan="4" style="text-align:center;font-size:12px;color:${cuadra?'var(--green)':'var(--red)'};padding:8px;font-weight:600">
+        ${cuadra?'✓ Balance Cuadrado — Total Activo = Total Pasivo + Capital':'✗ Balance no cuadra — revise las partidas registradas'}
+      </td>
+    </tr>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// PLAN DE CUENTAS — GESTIÓN DINÁMICA
+// ══════════════════════════════════════════════════════════════════════
+
+// Set para rastrear cuentas añadidas por el usuario en sesión
+const CUENTAS_NUEVAS = new Set();
+
+function agregarCuenta() {
+  const codigo = document.getElementById('nc-codigo').value.trim();
+  const nombre = document.getElementById('nc-nombre').value.trim();
+  const tipo   = document.getElementById('nc-tipo').value;
+  const alertEl = document.getElementById('cta-alert');
+
+  const showAlert = (msg, cls) => {
+    alertEl.className = 'alert ' + cls;
+    alertEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/></svg>${msg}`;
+    alertEl.style.display = 'flex';
+    setTimeout(()=>{ alertEl.style.display='none'; }, 4000);
+  };
+
+  if(!codigo) { showAlert('Ingrese el código de la cuenta.', 'err'); return; }
+  if(!nombre)  { showAlert('Ingrese el nombre de la cuenta.', 'err'); return; }
+  if(!tipo)    { showAlert('Seleccione el tipo de cuenta.', 'err'); return; }
+  if(CUENTAS.some(c => c.c === codigo)) {
+    showAlert(`El código <strong>${codigo}</strong> ya existe en el catálogo.`, 'err'); return;
+  }
+
+  // Agregar al arreglo global
+  CUENTAS.push({c: codigo, n: nombre, t: tipo, _nueva: true});
+  CUENTAS_NUEVAS.add(codigo);
+
+  // Limpiar inputs
+  document.getElementById('nc-codigo').value = '';
+  document.getElementById('nc-nombre').value = '';
+  document.getElementById('nc-tipo').value = '';
+
+  // Actualizar tabla de cuentas
+  renderCuentas();
+
+  // CRÍTICO: actualizar todos los selectores de partidas ya abiertos en el DOM
+  actualizarSelectoresCuentas(codigo, nombre);
+
+  showAlert(`Cuenta <strong>${codigo} — ${nombre}</strong> añadida exitosamente al catálogo.`, 'info');
+}
+
+// Los inputs de autocompletado leen dinámicamente del arreglo global CUENTAS,
+// por lo que no se requiere actualización manual de selectores al agregar cuentas.
+function actualizarSelectoresCuentas(cod, nom) {
+  // No-op: los inputs de tipo cta-inp filtran en tiempo real sobre CUENTAS[]
+}
+
+function renderCuentas() {
+  const m = calcSaldos();
+  const q = (document.getElementById('s-cta')?.value||'').toLowerCase();
+  const cl = document.getElementById('s-cclase')?.value||'';
+  let count=0, html='';
+
+  // Códigos con movimiento en partidas registradas
+  const codConMovimiento = new Set();
+  PARTIDAS.forEach(p=>p.lineas.forEach(l=>codConMovimiento.add(l.cod)));
+
+  // Badge por tipo de cuenta
+  const tipoBadge = {
+    'Activo':      ['#dbeafe','#1e40af'],
+    'Pasivo':      ['#fef3c7','#92400e'],
+    'Capital':     ['#f3e8ff','#6b21a8'],
+    'Ingreso':     ['var(--greenL)','var(--accent2)'],
+    'Gasto':       ['var(--redL)','var(--red)'],
+    'Otro Ingreso':['#ecfdf5','#047857'],
+    'Otro Gasto':  ['#fff7ed','#c2410c'],
+  };
+
+  CUENTAS.forEach(c=>{
+    if(!c.c.toLowerCase().includes(q)&&!c.n.toLowerCase().includes(q)) return;
+    if(cl&&c.c[0]!==cl) return;
+    const r = m[c.c];
+    const sf = r ? r.sf : 0;
+    const [bg,fg] = tipoBadge[c.t]||['#f3f4f6','#374151'];
+    const origenBadge = c._nueva
+      ? `<span style="font-size:9px;font-weight:700;background:var(--accentL);color:var(--accent2);padding:2px 7px;border-radius:3px;font-family:var(--ffm)">NUEVA</span>`
+      : `<span style="font-size:9px;color:var(--light)">Maestra</span>`;
+    const tieneMov = codConMovimiento.has(c.c);
+    const btnElim = tieneMov
+      ? `<button title="No se puede eliminar: cuenta con movimientos registrados"
+           style="background:none;border:1px solid var(--border2);border-radius:4px;padding:3px 7px;cursor:not-allowed;color:var(--light);font-size:11px;display:inline-flex;align-items:center;gap:3px;opacity:.5">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>Eliminar</button>`
+      : `<button onclick="confirmarEliminarCuenta('${c.c}')" title="Eliminar cuenta"
+           style="background:none;border:1px solid #fca5a5;border-radius:4px;padding:3px 7px;cursor:pointer;color:var(--red);font-size:11px;display:inline-flex;align-items:center;gap:3px;transition:all .12s"
+           onmouseover="this.style.background='var(--redL)'" onmouseout="this.style.background='none'">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>Eliminar</button>`;
+    html += `<tr>
+      <td class="mono">${c.c}</td>
+      <td>${c.n}</td>
+      <td><span style="font-size:10.5px;font-weight:600;background:${bg};color:${fg};padding:2px 8px;border-radius:3px;white-space:nowrap">${c.t}</span></td>
+      <td class="r ${cls(sf)}">${f2(sf)}</td>
+      <td class="c">${origenBadge}</td>
+      <td class="c">${btnElim}</td>
+    </tr>`;
+    count++;
+  });
+  document.getElementById('cuentas-body').innerHTML = html || '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--light)">No se encontraron cuentas para los filtros aplicados</td></tr>';
+  document.getElementById('cta-count').textContent = count + ' cuentas';
+}
+
+// ── ELIMINAR CUENTA ──
+let pendingDeleteCuenta = null;
+
+function confirmarEliminarCuenta(cod) {
+  const c = CUENTAS.find(x=>x.c===cod);
+  if(!c) return;
+  pendingDeleteCuenta = cod;
+
+  // Reutilizar el modal existente de confirmación
+  document.getElementById('modal-msg').innerHTML =
+    `¿Eliminar la cuenta <strong>${c.c} — ${c.n}</strong>?<br>
+     <span style="font-size:11px;color:var(--muted);margin-top:6px;display:block">Esta acción no se puede deshacer. La cuenta también será removida de los selectores del Libro Diario.</span>`;
+  document.getElementById('modal-bg').classList.add('open');
+  document.getElementById('modal-confirm').onclick = ejecutarEliminarCuenta;
+}
+
+function ejecutarEliminarCuenta() {
+  if(!pendingDeleteCuenta) return;
+  const cod = pendingDeleteCuenta;
+
+  // Quitar del arreglo global
+  const idx = CUENTAS.findIndex(x=>x.c===cod);
+  if(idx>-1) CUENTAS.splice(idx,1);
+  CUENTAS_NUEVAS.delete(cod);
+
+  // Limpiar inputs de autocompletado que tengan la cuenta eliminada seleccionada
+  document.querySelectorAll('.cta-inp').forEach(inp=>{
+    if(inp.dataset.cod===cod) {
+      inp.value=''; inp.dataset.cod=''; inp.dataset.nom='';
+      inp.classList.remove('has-value');
+    }
+  });
+
+  closeModal();
+  pendingDeleteCuenta = null;
+  renderCuentas();
+
+  // Mostrar alerta de éxito en el panel de cuentas
+  const alertEl = document.getElementById('cta-alert');
+  alertEl.className = 'alert warn';
+  alertEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>Cuenta <strong>${cod}</strong> eliminada del catálogo.`;
+  alertEl.style.display = 'flex';
+  setTimeout(()=>{ alertEl.style.display='none'; }, 4000);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// PERÍODO CONTABLE — Control reactivo
+// ══════════════════════════════════════════════════════════════════════
+function fmtFecha(iso) {
+  // "2026-01-31" → "31/01/2026"
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function fmtMesAnio(iso) {
+  // "2026-01-31" → "Enero 2026"
+  if(!iso) return '';
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const [y,m] = iso.split('-');
+  return `${meses[parseInt(m,10)-1]} ${y}`;
+}
+
+function onPeriodoChange() {
+  const ini = document.getElementById('pc-inicio').value;
+  const fin = document.getElementById('pc-fin').value;
+  const fIni = fmtFecha(ini);
+  const fFin = fmtFecha(fin);
+  const rango = `${fIni} – ${fFin}`;
+
+  // Sidebar footer
+  document.getElementById('sb-footer').innerHTML = `Período: ${fmtMesAnio(ini)}<br>ZAP System ERP`;
+
+  // Report eheads
+  const sp = document.getElementById('ehead-saldos-p');
+  if(sp) sp.textContent = `NIT: 5390 UMG | Período: ${fIni} al ${fFin}`;
+
+  const mp = document.getElementById('ehead-mayor-p');
+  if(mp) mp.textContent = `NIT: 5390 UMG | Período: ${fIni} al ${fFin} | Guatemala`;
+
+  const bp = document.getElementById('ehead-balance-p');
+  if(bp) bp.textContent = `NIT: 5390 UMG | Al ${fFin} | ZAP System ERP`;
+
+  // Refresh visible reports
+  renderDashboard();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', ()=>{
+  updateNextNum();
+  addRow(); addRow();
+  renderDashboard();
+  renderCuentas();
+  // Close any open dropdown when clicking outside
+  document.addEventListener('click', e => {
+    if(!e.target.closest('.cta-wrap') && !e.target.closest('.cta-dropdown')) {
+      document.querySelectorAll('.cta-dropdown.open').forEach(dd=>dd.classList.remove('open'));
+    }
+  });
+});
+</script>
+</body>
+</html>
