@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ZAP System — ERP Contable</title>
+<link rel="icon" type="image/png" href="https://i.postimg.cc/qMHZbX0Q/Imagen1.png">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -21,9 +22,6 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);display:flex;h
 
 /* ── SIDEBAR ── */
 #sb{width:var(--sidebar);background:var(--navy);display:flex;flex-direction:column;flex-shrink:0}
-#sb-logo{padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
-#sb-logo .co{font-size:13px;font-weight:600;color:#fff;letter-spacing:.2px}
-#sb-logo .nit{font-size:10px;color:rgba(255,255,255,.35);font-family:var(--ffm);margin-top:2px}
 #sb nav{padding:6px 0;flex:1;overflow-y:auto}
 .ns{font-size:9px;font-weight:600;color:rgba(255,255,255,.3);letter-spacing:1.6px;padding:10px 14px 3px;text-transform:uppercase}
 .ni{display:flex;align-items:center;gap:9px;padding:8px 14px;color:rgba(255,255,255,.6);cursor:pointer;transition:all .12s;font-size:12.5px;border-left:3px solid transparent}
@@ -242,16 +240,42 @@ select.ci{width:100%}
 }
 .ci.formula:focus{background:#fffbeb;border-color:var(--amber);color:#92400e}
 .ci.formula.evaluated{background:var(--greenL);border-color:#9fe1cb;color:var(--accent2)}
+
+/* ── SIDEBAR BRAND ── */
+.sidebar-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+}
+.main-logo {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.2s ease-in-out;
+}
+.main-logo:hover {
+    transform: scale(1.02);
+}
+.brand-subtitle {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    letter-spacing: 0.12em;
+    margin-top: 8px;
+}
 </style>
 </head>
 <body>
 
 <!-- SIDEBAR -->
 <div id="sb">
-  <div id="sb-logo">
-    <div class="co">ZAP System</div>
-    <div class="nit" style="font-size:9px;opacity:.5;letter-spacing:.5px">ERP CONTABLE</div>
-    <div class="nit">NIT: 5390 UMG</div>
+  <div class="sidebar-brand">
+    <img src="https://i.postimg.cc/qMHZbX0Q/Imagen1.png" alt="ZAP System" class="main-logo">
+    <span class="brand-subtitle">ERP CONTABLE</span>
   </div>
   <nav>
     <div class="ns">Operación</div>
